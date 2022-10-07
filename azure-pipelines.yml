@@ -8,28 +8,32 @@ pool:
   vmImage: ubuntu-latest
 
 
-jobs:
-- job: Checkov_Job
-  steps:
-  - task: AzureKeyVault@2
-    inputs:
-      azureSubscription: 'pipeline-connection'
-      keyVaultName: 'ts-pipeline-vault'
-      secretsFilter: '*'
-      runAsPreJob: false
-  - task: UsePythonVersion@0
-    inputs:
-      versionSpec: '3.8'
-    displayName: 'Install Python 3.8'
-  - script: pip install checkov
-    displayName: 'Install Checkov'
-  - script: checkov -d . --use-enforcement-rules --bc-api-key $(prisma-access-key)::$(prisma-secret-key) --repo-id prismaiac/bicepgoat --branch main -o cli -o junitxml --output-file-path console,CheckovReport.xml
-    displayName: 'Scan with Prisma Cloud'
-    env:
-      PRISMA_API_URL: https://api.prismacloud.io
-  - task: PublishTestResults@2
-    inputs:
-      testResultsFormat: 'JUnit'
-      testResultsFiles: '**/CheckovReport.xml'
-      testRunTitle: PrismaCloudTests
-    displayName: Publish Test Results
+stages:
+- stage: Prisma_Cloud_Scan
+  displayName: Prisma Cloud Scan
+  jobs:
+  - job: Prisma_Cloud_Job
+    displayName: Prisma Cloud Job
+    steps:
+    - task: AzureKeyVault@2
+      inputs:
+        azureSubscription: 'pipeline-connection'
+        keyVaultName: 'ts-pipeline-vault'
+        secretsFilter: '*'
+        runAsPreJob: false
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '3.8'
+        workingDirectory: $(System.DefaultWorkingDirectory)
+        script: |
+          pip install checkov
+          checkov -d . --use-enforcement-rules --bc-api-key $(prisma-access-key)::$(prisma-secret-key) --repo-id prismaiac/bicepgoat --branch main -o cli -o junitxml --output-file-path console,CheckovReport.xml
+      displayName: 'Install and Run Checkov'
+      env:
+        PRISMA_API_URL: https://api.prismacloud.io
+    - task: PublishTestResults@2
+      inputs:
+        testResultsFormat: 'JUnit'
+        testResultsFiles: '**/CheckovReport.xml'
+        testRunTitle: PrismaCloudTests
+      displayName: Publish Test Results
