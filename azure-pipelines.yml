@@ -10,31 +10,32 @@ pool:
 #variables:
 #- name: PRISMA_API_URL
 #  value: https://api.prismacloud.io
-
-steps:
-- task: AzureKeyVault@2
-  inputs:
-    azureSubscription: 'pipeline-connection'
-    keyVaultName: 'ts-pipeline-vault'
-    secretsFilter: '*'
-    runAsPreJob: false
-- task: UsePythonVersion@0
-  inputs:
-    versionSpec: '3.8'
-  displayName: 'Install Python 3.8'
-- script: pip install checkov
-  displayName: 'Install Checkov'
-- script: checkov -d . --use-enforcement-rules --bc-api-key $(prisma-access-key)::$(prisma-secret-key) --repo-id prismaiac/bicepgoat --branch main -o cli -o junitxml --output-file-path console,Checkov-Report.xml
-  displayName: 'Scan with Prisma Cloud'
-  env:
-    PRISMA_API_URL: https://api.prismacloud.io
-- task: PublishTestResults@2
-  inputs:
-    testResultsFormat: 'JUnit'
-    searchFolder: '$(System.DefaultWorkingDirectory)'
-    testResultsFiles: '**/*Checkov-Report.xml'
-    mergeTestResults: false
-    testRunTitle: Checkov Dev workspace scan
-    failTaskOnFailedTests: false
-    publishRunAttachments: true
-  displayName: Publish Test Results
+jobs:
+- job: Checkov Job
+  steps:
+  - task: AzureKeyVault@2
+    inputs:
+      azureSubscription: 'pipeline-connection'
+      keyVaultName: 'ts-pipeline-vault'
+      secretsFilter: '*'
+      runAsPreJob: false
+  - task: UsePythonVersion@0
+    inputs:
+      versionSpec: '3.8'
+    displayName: 'Install Python 3.8'
+  - script: pip install checkov
+    displayName: 'Install Checkov'
+  - script: checkov -d . --use-enforcement-rules --bc-api-key $(prisma-access-key)::$(prisma-secret-key) --repo-id prismaiac/bicepgoat --branch main -o cli -o junitxml --output-file-path console,Checkov-Report.xml
+    displayName: 'Scan with Prisma Cloud'
+    env:
+      PRISMA_API_URL: https://api.prismacloud.io
+  - task: PublishTestResults@2
+    inputs:
+      testResultsFormat: 'JUnit'
+      #searchFolder: '$(System.DefaultWorkingDirectory)'
+      testResultsFiles: '**/*Checkov-Report.xml'
+      #mergeTestResults: false
+      testRunTitle: Checkov Dev workspace scan
+      #failTaskOnFailedTests: false
+      #publishRunAttachments: true
+    displayName: Publish Test Results
