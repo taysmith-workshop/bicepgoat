@@ -34,6 +34,7 @@ stages:
         targetType: 'inline'
         workingDirectory: $(System.DefaultWorkingDirectory)            
         script: |
+          echo "Here"
           checkov -d . --use-enforcement-rules --bc-api-key $(prisma-access-key)::$(prisma-secret-key) --repo-id prismaiac/bicepgoat --branch main -o cli -o junitxml --output-file-path console,CheckovReport.xml
           cat CheckovReport.xml
       displayName: Run Checkov
