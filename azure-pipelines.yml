@@ -7,9 +7,7 @@ pr:
 pool:
   vmImage: ubuntu-latest
 
-#variables:
-#- name: PRISMA_API_URL
-#  value: https://api.prismacloud.io
+
 jobs:
 - job: Checkov_Job
   steps:
@@ -25,17 +23,14 @@ jobs:
     displayName: 'Install Python 3.8'
   - script: pip install checkov
     displayName: 'Install Checkov'
-  - script: checkov -d . --use-enforcement-rules --bc-api-key $(prisma-access-key)::$(prisma-secret-key) --repo-id prismaiac/bicepgoat --branch main -o cli -o junitxml --output-file-path console,Checkov-Report.xml
+  - script: checkov -d . --use-enforcement-rules --bc-api-key $(prisma-access-key)::$(prisma-secret-key) --repo-id prismaiac/bicepgoat --branch main -o cli -o junitxml --output-file-path console,CheckovReport.xml
+    workingDirectory: PrismaCloudTest
     displayName: 'Scan with Prisma Cloud'
     env:
       PRISMA_API_URL: https://api.prismacloud.io
   - task: PublishTestResults@2
     inputs:
       testResultsFormat: 'JUnit'
-      #searchFolder: '$(System.DefaultWorkingDirectory)'
-      testResultsFiles: '**/*Checkov-Report.xml'
-      #mergeTestResults: false
-      testRunTitle: Checkov Dev workspace scan
-      #failTaskOnFailedTests: false
-      #publishRunAttachments: true
+      testResultsFiles: '**/CheckovReport.xml'
+      testRunTitle: PrismaCloudTests
     displayName: Publish Test Results
