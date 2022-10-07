@@ -10,39 +10,32 @@ pool:
 variables:
   PRISMA_API_URL: https://api.prismacloud.io
 
-stages:
-- stage: Prisma_Cloud_Scan
-  displayName: Prisma Cloud Scan
-  jobs:
-  - job: Prisma_Cloud_Job
-    displayName: Prisma Cloud Job
-    steps:
-    - task: AzureKeyVault@2
-      inputs:
-        azureSubscription: 'pipeline-connection'
-        keyVaultName: 'ts-pipeline-vault'
-        secretsFilter: '*'
-        runAsPreJob: false
-    - task: Bash@3
-      inputs:
-        targetType: 'inline'
-        script: |
-          pip install checkov
-      displayName: Install Checkov
-    - task: Bash@3
-      inputs:
-        targetType: 'inline'
-        workingDirectory: $(System.DefaultWorkingDirectory)            
-        script: |
-          echo "Here"
-          checkov -d . --use-enforcement-rules --bc-api-key $(prisma-access-key)::$(prisma-secret-key) --repo-id prismaiac/bicepgoat --branch main -o cli -o junitxml --output-file-path console,CheckovReport.xml
-          cat CheckovReport.xml
-      displayName: Run Checkov
-      #env:
-      #  PRISMA_API_URL: https://api.prismacloud.io
-    - task: PublishTestResults@2
-      inputs:
-        testResultsFormat: 'JUnit'
-        testResultsFiles: '**/CheckovReport.xml'
-        testRunTitle: PrismaCloudTests
-      displayName: Publish Test Results
+
+jobs:
+- job: Prisma_Cloud_Job
+  displayName: Prisma Cloud Job
+  steps:
+  - task: AzureKeyVault@2
+    inputs:
+      azureSubscription: 'pipeline-connection'
+      keyVaultName: 'ts-pipeline-vault'
+      secretsFilter: '*'
+      runAsPreJob: false
+  - task: Bash@3
+    inputs:
+      targetType: 'inline'
+      script: |
+        pip install checkov
+    displayName: Install Checkov
+  - task: Bash@3
+    inputs:
+      targetType: 'inline'
+      workingDirectory: $(System.DefaultWorkingDirectory)            
+      script: checkov -d . --use-enforcement-rules --bc-api-key $(prisma-access-key)::$(prisma-secret-key) --repo-id prismaiac/bicepgoat --branch main -o cli -o junitxml --output-file-path console,CheckovReport.xml
+    displayName: Run Checkov
+  - task: PublishTestResults@2
+    inputs:
+      testResultsFormat: 'JUnit'
+      testResultsFiles: '**/CheckovReport.xml'
+      testRunTitle: PrismaCloudTests
+    displayName: Publish Test Results
