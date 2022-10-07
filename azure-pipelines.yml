@@ -11,7 +11,7 @@ pool:
 #- name: PRISMA_API_URL
 #  value: https://api.prismacloud.io
 jobs:
-- job: Checkov Job
+- job: Checkov_Job
   steps:
   - task: AzureKeyVault@2
     inputs:
