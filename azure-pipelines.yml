@@ -24,7 +24,6 @@ jobs:
   - script: pip install checkov
     displayName: 'Install Checkov'
   - script: checkov -d . --use-enforcement-rules --bc-api-key $(prisma-access-key)::$(prisma-secret-key) --repo-id prismaiac/bicepgoat --branch main -o cli -o junitxml --output-file-path console,CheckovReport.xml
-    workingDirectory: PrismaCloudTest
     displayName: 'Scan with Prisma Cloud'
     env:
       PRISMA_API_URL: https://api.prismacloud.io
