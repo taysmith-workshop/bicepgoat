@@ -21,14 +21,19 @@ stages:
         keyVaultName: 'ts-pipeline-vault'
         secretsFilter: '*'
         runAsPreJob: false
-    - task: UsePythonVersion@0
+    - task: Bash@3
       inputs:
-        versionSpec: '3.8'
-        workingDirectory: $(System.DefaultWorkingDirectory)
+        targetType: 'inline'
         script: |
           pip install checkov
+      displayName: Install Checkov
+    - task: Bash@3
+      inputs:
+        targetType: 'inline'
+        workingDirectory: $(System.DefaultWorkingDirectory)
+        script: |
           checkov -d . --use-enforcement-rules --bc-api-key $(prisma-access-key)::$(prisma-secret-key) --repo-id prismaiac/bicepgoat --branch main -o cli -o junitxml --output-file-path console,CheckovReport.xml
-      displayName: 'Install and Run Checkov'
+      displayName: Run Checkov
       env:
         PRISMA_API_URL: https://api.prismacloud.io
     - task: PublishTestResults@2
