@@ -21,17 +21,14 @@ jobs:
       keyVaultName: 'ts-pipeline-vault'
       secretsFilter: '*'
       runAsPreJob: false
-  - task: Bash@3
+  - task: UsePythonVersion@0
     inputs:
-      targetType: 'inline'
-      script: |
-        pip install checkov
+      versionSpec: 3.8
+    displayName: 'Use Python 3.8'
+  - script: pip install checkov
     displayName: Install Checkov
-  - task: Bash@3
-    inputs:
-      targetType: 'inline'
-      workingDirectory: $(System.DefaultWorkingDirectory)            
-      script: checkov -d . --use-enforcement-rules --bc-api-key $(prisma-access-key)::$(prisma-secret-key) --repo-id prismaiac/bicepgoat --branch main -o cli -o junitxml --output-file-path console,CheckovReport.xml
+  - script: checkov -d . --use-enforcement-rules --bc-api-key $(prisma-access-key)::$(prisma-secret-key) --repo-id prismaiac/bicepgoat --branch main -o cli -o junitxml --output-file-path console,CheckovReport.xml
+    workingDirectory: $(System.DefaultWorkingDirectory)
     displayName: Run Checkov
   - task: PublishTestResults@2
     inputs:
