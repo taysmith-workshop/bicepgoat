@@ -7,6 +7,8 @@ pr:
 pool:
   vmImage: ubuntu-latest
 
+variables:
+  PRISMA_API_URL: https://api.prismacloud.io
 
 stages:
 - stage: Prisma_Cloud_Scan
@@ -30,17 +32,16 @@ stages:
     - task: Bash@3
       inputs:
         targetType: 'inline'
-        workingDirectory: $(System.DefaultWorkingDirectory)
+        workingDirectory: $(System.DefaultWorkingDirectory)            
         script: |
           checkov -d . --use-enforcement-rules --bc-api-key $(prisma-access-key)::$(prisma-secret-key) --repo-id prismaiac/bicepgoat --branch main -o cli -o junitxml --output-file-path console,CheckovReport.xml
           cat CheckovReport.xml
       displayName: Run Checkov
-      env:
-        PRISMA_API_URL: https://api.prismacloud.io
+      #env:
+      #  PRISMA_API_URL: https://api.prismacloud.io
     - task: PublishTestResults@2
       inputs:
         testResultsFormat: 'JUnit'
-        searchFolder: '$(System.DefaultWorkingDirectory)'
         testResultsFiles: '**/CheckovReport.xml'
         testRunTitle: PrismaCloudTests
       displayName: Publish Test Results
